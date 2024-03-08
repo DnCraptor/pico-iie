@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "memory": "c",
+        "random": "c",
+        "optional": "c"
+    }
+}

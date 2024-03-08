@@ -184,7 +184,7 @@ void main_core1(void)
     }
 }
 
-int main(void)
+int main2(void)
 {
     clock_init();
     test_pin_init();
