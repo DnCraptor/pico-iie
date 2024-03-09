@@ -41,9 +41,23 @@ void inInit(uint gpio) {
 }
 
 extern "C" {
-bool __time_critical_func(handleScancode)(const uint32_t ps2scancode) {
-    return true;
-}
+    #include "keyboard.h"
+
+    // Apple IIe keyboard codes
+    #define UP   0x0B
+    #define DOWN 0x0A
+    #define LEFT 0x08
+    #define RGHT 0x15
+    #define RTN  0x0D
+    #define TAB  0x09
+    #define ESC  0x1B
+    #define DEL  0x7F
+
+    bool __time_critical_func(handleScancode)(const uint32_t ps2scancode) {
+        uint8_t key = ((uint8_t)ps2scancode) & 0xFF;
+        keyboard_key_code_set(key);
+        return true;
+    }
 }
 
 void nespad_update() {
@@ -214,7 +228,7 @@ int main() {
             c6502_update(&interface_c);
             ram_update(interface_c.rw, interface_c.address, &interface_c.data);
             rom_update(interface_c.rw, interface_c.address, &interface_c.data);
-        //    keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
+            keyboard_update(interface_c.rw, interface_c.address, &interface_c.data);
         //    game_update(interface_c.rw, interface_c.address, &interface_c.data);
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
