@@ -131,7 +131,7 @@ void __time_critical_func() dma_handler_VGA() {
             line_number = screen_line / 2;
             if (screen_line % 2) return;
             y = screen_line / 2 - graphics_buffer_shift_y;
-            video_scan_line_set(screen_line);
+            video_scan_line_set(y);
             video_buffer_clear();
             video_address = video_address_get();
             ram_data_get(VIDEO_BYTES_PER_LINE, video_address, video_line_data);
@@ -281,8 +281,11 @@ void __time_critical_func() dma_handler_VGA() {
         case APPLE_640x480:
             output_buffer_8bit = (uint8_t *)output_buffer_16bit;
             uint16_t * ib = video_buffer;
-            for (int i = 0; i < VIDEO_BUFFER_SIZE; ++i)
-                *output_buffer_8bit++ = graphics_333_to_222(*ib++);
+            for (int i = 0; i < VIDEO_BUFFER_SIZE; ++i) {
+                uint8_t v = graphics_333_to_222(*ib++);
+                *output_buffer_8bit++ = v;
+                *output_buffer_8bit++ = v; // 280 * 2 = 560
+            }
             // TODO: ensure
             break;
         case CGA_640x200x2:
