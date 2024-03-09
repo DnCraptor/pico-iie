@@ -483,6 +483,7 @@ static void __scratch_x("tv_main_loop") main_video_loopTV() {
                 if (graphics_buffer.data)
                 switch (graphics_mode) {
                     default:
+                    case APPLE_640x480: // TODO:
                     case GRAPHICSMODE_DEFAULT: {
                         //для 8-битного буфера
                         uint8_t* input_buffer8 = input_buffer + y * graphics_buffer.width;

@@ -187,6 +187,7 @@ static void __scratch_y("hdmi_driver") dma_handler_HDMI() {
         int y = line / 2;
         switch (graphics_mode) {
             case GRAPHICSMODE_DEFAULT:
+            case APPLE_640x480: // TODO:
             case VGA_320x240x256:
                 //заполняем пространство сверху и снизу графического буфера
                 if (false || (graphics_buffer_shift_y > y) || (y >= (graphics_buffer_shift_y + graphics_buffer_height))

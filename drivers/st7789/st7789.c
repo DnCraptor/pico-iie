@@ -249,6 +249,7 @@ void __inline __scratch_y("refresh_lcd") refresh_lcd() {
             }
             stop_pixels();
             break;
+        case APPLE_640x480: // TODO:
         case GRAPHICSMODE_DEFAULT: {
             const uint8_t* bitmap = graphics_buffer;
             lcd_set_window(0, 0, SCREEN_WIDTH,

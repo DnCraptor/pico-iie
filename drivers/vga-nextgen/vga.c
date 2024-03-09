@@ -11,6 +11,8 @@
 #include "hardware/pio.h"
 #include "pico/stdlib.h"
 #include "stdlib.h"
+#include "video.h"
+#include "ram.h"
 
 uint16_t pio_program_VGA_instructions[] = {
     //     .wrap_target
@@ -68,7 +70,8 @@ static uint16_t* txt_palette_fast = NULL;
 //static uint16_t txt_palette_fast[256*4];
 
 enum graphics_mode_t graphics_mode;
-
+static uint16_t video_address = 0x2000;
+static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
 
 void __time_critical_func() dma_handler_VGA() {
     dma_hw->ints0 = 1u << dma_chan_ctrl;
@@ -110,8 +113,18 @@ void __time_critical_func() dma_handler_VGA() {
 
     int y, line_number;
 
-    uint32_t* * output_buffer = &lines_pattern[2 + (screen_line & 1)];
+    uint32_t* * output_buffer = &lines_pattern[2 + (screen_line & 1)]; // TODO: ?? APPLE_640x480
     switch (graphics_mode) {
+        case APPLE_640x480: // TODO:
+            line_number = screen_line / 2;
+            if (screen_line % 2) return;
+            y = screen_line / 2 - graphics_buffer_shift_y;
+            video_scan_line_set(screen_line);
+            video_buffer_clear();
+            video_address = video_address_get();
+            ram_data_get(VIDEO_BYTES_PER_LINE, video_address, video_line_data);
+            video_line_data_get(video_line_data);
+            break;
         case CGA_160x200x16:
         case CGA_320x200x4:
         case CGA_640x200x2:
@@ -251,6 +264,13 @@ void __time_critical_func() dma_handler_VGA() {
     uint8_t* output_buffer_8bit;
     if(graphics_buffer != NULL)
     switch (graphics_mode) {
+        case APPLE_640x480:
+            output_buffer_8bit = (uint8_t *)output_buffer_16bit;
+            uint16_t * ib = video_line_data;
+            for (int i = 0; i < VIDEO_BYTES_PER_LINE >> 1; ++i)
+                *output_buffer_8bit++ = *ib++;
+            // TODO:
+            break;
         case CGA_640x200x2:
             output_buffer_8bit = (uint8_t *)output_buffer_16bit;
         //1bit buf
@@ -392,24 +412,18 @@ void graphics_set_mode(enum graphics_mode_t mode) {
         case VGA_320x200x256x4:
         case EGA_320x200x16x4:
         case TGA_320x200x16:
-
+        case APPLE_640x480: // TODO: ensure
             TMPL_LINE8 = 0b11000000;
             HS_SHIFT = 328 * 2;
             HS_SIZE = 48 * 2;
-
             line_size = 400 * 2;
-
             shift_picture = line_size - HS_SHIFT;
-
             palette16_mask = 0xc0c0;
-
             visible_line_size = 320;
-
             N_lines_total = 525;
             N_lines_visible = 480;
             line_VS_begin = 490;
             line_VS_end = 491;
-
             fdiv = clock_get_hz(clk_sys) / 25175000.0; //частота пиксельклока
             break;
         default:
@@ -613,7 +627,7 @@ void graphics_init() {
     );
     //dma_channel_set_read_addr(dma_chan, &DMA_BUF_ADDR[0], false);
 
-    graphics_set_mode(GRAPHICSMODE_DEFAULT);
+    graphics_set_mode(APPLE_640x480);
 
     irq_set_exclusive_handler(VGA_DMA_IRQ, dma_handler_VGA);
 

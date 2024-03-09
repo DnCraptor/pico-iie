@@ -51,7 +51,7 @@ void nespad_update() {
 
 void __time_critical_func(render_core)() {
     const auto buffer = (uint8_t*)&SCREEN[0][0];
-    graphics_set_buffer(buffer, DISP_WIDTH, DISP_HEIGHT);
+    graphics_set_buffer(buffer, DISP_WIDTH, DISP_HEIGHT); // TODO: APPLE_640x480
     multicore_lockout_victim_init();
     graphics_init();
     graphics_set_textbuffer(buffer);
@@ -203,7 +203,6 @@ int main() {
     ram_init();
     video_init();
     c6502_init();
-//    speaker_init();
 //    menu_init();
     while(true) {
         if (reset == true) {

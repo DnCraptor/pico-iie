@@ -25,6 +25,7 @@ extern "C" {
 enum graphics_mode_t {
     TEXTMODE_DEFAULT,
     GRAPHICSMODE_DEFAULT,
+    APPLE_640x480, // really 280x192
 
     TEXTMODE_53x30,
 
