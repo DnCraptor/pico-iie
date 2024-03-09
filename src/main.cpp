@@ -166,8 +166,8 @@ int main() {
     nespad_read();
     sleep_ms(50);
 
-    // F12 Boot to USB FIRMWARE UPDATE mode
-    if (nespad_state & DPAD_START /**|| input_map.keycode == 0x58*/) { // F12
+    // Joistik START button to USB FIRMWARE UPDATE mode
+    if (nespad_state & DPAD_START) {
         printf("reset_usb_boot");
         reset_usb_boot(0, 0);
     }
