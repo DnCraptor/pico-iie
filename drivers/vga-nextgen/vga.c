@@ -70,8 +70,20 @@ static uint16_t* txt_palette_fast = NULL;
 //static uint16_t txt_palette_fast[256*4];
 
 enum graphics_mode_t graphics_mode;
+// Apple TODO:
 static uint16_t video_address = 0x2000;
 static uint8_t video_line_data[VIDEO_BYTES_PER_LINE] = {0};
+#define VIDEO_RESOLUTION_X 280
+#define VIDEO_RESOLUTION_Y 192
+#define VIDEO_BUFFER_SIZE (VIDEO_RESOLUTION_X)
+static uint16_t video_buffer[VIDEO_BUFFER_SIZE] = {0};
+
+inline static uint8_t graphics_333_to_222(const uint16_t color333) {
+    const uint8_t b = (color333 & 0x07) >> 1; // TODO: ensure
+    const uint8_t r = (color333 >> 6 & 0x07) >> 1;
+    const uint8_t g = (color333 >> 3 & 0x07) >> 1;
+    return r << 4 | g << 2 | b | palette16_mask;
+}
 
 void __time_critical_func() dma_handler_VGA() {
     dma_hw->ints0 = 1u << dma_chan_ctrl;
@@ -124,6 +136,8 @@ void __time_critical_func() dma_handler_VGA() {
             video_address = video_address_get();
             ram_data_get(VIDEO_BYTES_PER_LINE, video_address, video_line_data);
             video_line_data_get(video_line_data);
+            // odd?
+            video_buffer_get(video_buffer);
             break;
         case CGA_160x200x16:
         case CGA_320x200x4:
@@ -266,10 +280,10 @@ void __time_critical_func() dma_handler_VGA() {
     switch (graphics_mode) {
         case APPLE_640x480:
             output_buffer_8bit = (uint8_t *)output_buffer_16bit;
-            uint16_t * ib = video_line_data;
-            for (int i = 0; i < VIDEO_BYTES_PER_LINE >> 1; ++i)
-                *output_buffer_8bit++ = *ib++;
-            // TODO:
+            uint16_t * ib = video_buffer;
+            for (int i = 0; i < VIDEO_BUFFER_SIZE; ++i)
+                *output_buffer_8bit++ = graphics_333_to_222(*ib++);
+            // TODO: ensure
             break;
         case CGA_640x200x2:
             output_buffer_8bit = (uint8_t *)output_buffer_16bit;
