@@ -85,6 +85,39 @@ extern "C" {
     #include "keyboard.h"
 
     bool __time_critical_func(handleScancode)(const uint32_t ps2scancode) {
+        uint16_t key16 = (uint16_t)ps2scancode & 0xFFFF;
+        if (key16 == 0xE048) { // up
+            keyboard_key_code_set(0x26);
+            return true;
+        }
+        if (key16 == 0xE04B) { // left
+            keyboard_key_code_set(0x25);
+            return true;
+        }
+        if (key16 == 0xE050) { // down
+            keyboard_key_code_set(0x28);
+            return true;
+        }
+        if (key16 == 0xE04D) { // right
+            keyboard_key_code_set(0x27);
+            return true;
+        }
+        if (key16 == 0xE048) { // home
+            keyboard_key_code_set(0x24);
+            return true;
+        }
+        if (key16 == 0xE04F) { // end
+            keyboard_key_code_set(0x23);
+            return true;
+        }
+        if (key16 == 0xE049) { // pageup
+            keyboard_key_code_set(0x21);
+            return true;
+        }
+        if (key16 == 0xE051) { // pagedown
+            keyboard_key_code_set(0x22);
+            return true;
+        }
         uint8_t key = ((uint8_t)ps2scancode) & 0xFF;
         switch (key)
         {
