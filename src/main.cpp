@@ -25,7 +25,7 @@ static FATFS fs;
 semaphore vga_start_semaphore;
 #define DISP_WIDTH (320)
 #define DISP_HEIGHT (240)
-uint16_t SCREEN[TEXTMODE_ROWS][TEXTMODE_COLS];
+uint16_t SCREEN[DISP_WIDTH][DISP_HEIGHT];
 
 pwm_config config = pwm_get_default_config();
 void PWM_init_pin(uint8_t pinN, uint16_t max_lvl) {
