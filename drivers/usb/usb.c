@@ -61,7 +61,7 @@ inline void init_pico_usb_drive() {
     }
 }
 
-inline void pico_usb_drive_heartbeat() {
+void pico_usb_drive_heartbeat() {
     tud_task(); // tinyusb device task
     led_blinking_task();
     cdc_task();
@@ -71,7 +71,7 @@ void in_flash_drive() {
   init_pico_usb_drive();
   while(!tud_msc_ejected()) {
     pico_usb_drive_heartbeat();
-    //if_swap_drives();
+    if_swap_drives();
   }
   for (int i = 0; i < 10; ++i) { // sevaral hb till end of cycle, TODO: care eject
     pico_usb_drive_heartbeat();

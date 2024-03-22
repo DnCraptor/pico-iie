@@ -47,7 +47,7 @@ extern uint8_t* text_buffer;
 
 void graphics_init();
 
-void graphics_set_mode(enum graphics_mode_t mode);
+enum graphics_mode_t graphics_set_mode(enum graphics_mode_t mode);
 
 void graphics_set_buffer(uint8_t* buffer, uint16_t width, uint16_t height);
 

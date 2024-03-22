@@ -125,7 +125,7 @@ void __time_critical_func() dma_handler_VGA() {
 
     int y, line_number;
 
-    uint32_t* * output_buffer = &lines_pattern[2 + (screen_line & 1)]; // TODO: ?? APPLE_640x480
+    uint32_t* * output_buffer = &lines_pattern[2 + (screen_line & 1)];
     switch (graphics_mode) {
         case APPLE_640x480:
             line_number = screen_line / 2;
@@ -372,7 +372,8 @@ void __time_critical_func() dma_handler_VGA() {
     dma_channel_set_read_addr(dma_chan_ctrl, output_buffer, false);
 }
 
-void graphics_set_mode(enum graphics_mode_t mode) {
+enum graphics_mode_t graphics_set_mode(enum graphics_mode_t mode) {
+    enum graphics_mode_t ret = graphics_mode;
     switch (mode) {
         case TEXTMODE_53x30:
             text_buffer_width = 40;
@@ -385,13 +386,13 @@ void graphics_set_mode(enum graphics_mode_t mode) {
             text_buffer_height = 30;
     }
     memset(graphics_buffer, 0, graphics_buffer_height * graphics_buffer_width);
-    if (_SM_VGA < 0) return; // если  VGA не инициализирована -
+    if (_SM_VGA < 0) return ret; // если  VGA не инициализирована -
 
     graphics_mode = mode;
 
     // Если мы уже проиницилизированы - выходим
     if (txt_palette_fast && lines_pattern_data) {
-        return;
+        return ret;
     };
     uint8_t TMPL_VHS8 = 0;
     uint8_t TMPL_VS8 = 0;
@@ -431,7 +432,7 @@ void graphics_set_mode(enum graphics_mode_t mode) {
         case VGA_320x200x256x4:
         case EGA_320x200x16x4:
         case TGA_320x200x16:
-        case APPLE_640x480: // TODO: ensure
+        case APPLE_640x480:
             TMPL_LINE8 = 0b11000000;
             HS_SHIFT = 328 * 2;
             HS_SIZE = 48 * 2;
@@ -446,7 +447,7 @@ void graphics_set_mode(enum graphics_mode_t mode) {
             fdiv = clock_get_hz(clk_sys) / 25175000.0; //частота пиксельклока
             break;
         default:
-            return;
+            return ret;
     }
 
     //корректировка  палитры по маске бит синхры
@@ -494,6 +495,7 @@ void graphics_set_mode(enum graphics_mode_t mode) {
         base_ptr = (uint8_t *)lines_pattern[3];
         memcpy(base_ptr, lines_pattern[0], line_size);
     }
+    return ret;
 }
 
 void graphics_set_buffer(uint8_t* buffer, const uint16_t width, const uint16_t height) {

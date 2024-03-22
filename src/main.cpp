@@ -18,6 +18,7 @@ extern "C" {
 #include "ff.h"
 #include "debug.h"
 #include "util_Wii_Joy.h"
+#include "manager.h"
 }
 
 static FATFS fs;
@@ -83,8 +84,10 @@ static const uint8_t key_iee_shift[0x80] = {
 
 extern "C" {
     #include "keyboard.h"
+    bool handleScancodeToDo(uint32_t ps2scancode);
 
     bool __time_critical_func(handleScancode)(const uint32_t ps2scancode) {
+        handleScancodeToDo(ps2scancode);
         uint16_t key16 = (uint16_t)ps2scancode & 0xFFFF;
         if (key16 == 0xE048) { // up
             keyboard_key_code_set(0x26);
@@ -325,6 +328,7 @@ int main() {
             speaker_update(interface_c.rw, interface_c.address, &interface_c.data);
             video_update(interface_c.rw, interface_c.address, &interface_c.data);
         }
+        if_manager();
         tight_loop_contents();
     }
 
