@@ -11,7 +11,7 @@ To get it working you should have an Murmulator (development) board with VGA out
 
 # Периферия
 <ul>
-<li>VGA-copatible output with 222 color maping from the "Apple //e" 16-colors</li>
+<li>VGA-compatible output with 222 color maping from the "Apple //e" 16-colors</li>
 <li>Звук от пищалки выводится в виде 8-ми битного ШИМ.</li>
 <li>PS/2 клавиатура</li>
 <li>Dendy джойстики TBA</li>
