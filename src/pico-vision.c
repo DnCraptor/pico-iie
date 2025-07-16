@@ -3,6 +3,7 @@
 #include <string.h>
 #include "pico-vision.h"
 #include "vga.h"
+#include "graphics.h"
 
 static const color_schema_t color_schema = {
    /*BACKGROUND_FIELD_COLOR =*/ 1, // Blue

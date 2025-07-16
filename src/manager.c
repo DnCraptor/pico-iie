@@ -1,4 +1,8 @@
 #if PICO_ON_DEVICE
+#include <pico.h>
+#include <pico/time.h>
+#include <pico/stdlib.h>
+#include <hardware/clocks.h>
 #include <string.h>
 #include "manager.h"
 #include "graphics.h"
@@ -201,7 +205,7 @@ void notify_image_insert_action(uint8_t drivenum, char *pathname) {
 }
 
 static void swap_drives(uint8_t cmd) {
-    sprintf(line, "F%d pressed - swap FDD images", cmd + 1);
+    snprintf(line, 80, "F%d pressed - swap FDD images", cmd + 1);
     draw_cmd_line(0, CMD_Y_POS, line);
     if (already_swapped_fdds) {
    //     insertdisk(0, fdd0_sz(), fdd0_rom(), "\\XT\\fdd0.img");
@@ -221,14 +225,14 @@ inline static void if_swap_drives() {
 }
 
 static void draw_window2() {
-    sprintf(line, "SD:%s", left_panel.path);
+    snprintf(line, 80, "SD:%s", left_panel.path);
     draw_panel( 0, PANEL_TOP_Y, 40, PANEL_LAST_Y + 1, line, 0);
-    sprintf(line, "SD:%s", right_panel.path);
+    snprintf(line, 80, "SD:%s", right_panel.path);
     draw_panel(40, PANEL_TOP_Y, 40, PANEL_LAST_Y + 1, line, 0);
 }
 
 void do_nothing(uint8_t cmd) {
-    sprintf(line, "F%d pressed - not yet implemnted", cmd + 1);
+    snprintf(line, 80, "F%d pressed - not yet implemnted", cmd + 1);
     draw_cmd_line(0, CMD_Y_POS, line);
 }
 
@@ -303,7 +307,7 @@ static inline void turn_usb_off(uint8_t cmd) { // TODO: support multiple enter f
     memset(fn_1_10_tbl_alt[9].name, ' ', BTN_WIDTH);
     fn_1_10_tbl_alt[9].action = do_nothing;
     // Ctrl + F10 - Exit
-    sprintf(fn_1_10_tbl_ctrl[9].name, " Exit ");
+    snprintf(fn_1_10_tbl_ctrl[9].name, 8, " Exit ");
     fn_1_10_tbl_ctrl[9].action = mark_to_exit;
 
     fill_panel(&left_panel);
@@ -321,7 +325,7 @@ static void turn_usb_on(uint8_t cmd) {
     memset(fn_1_10_tbl_ctrl[9].name, ' ', BTN_WIDTH);
     fn_1_10_tbl_ctrl[9].action = do_nothing;
     // Alt + F10 - force unmount usb
-    sprintf(fn_1_10_tbl_alt[9].name, " UnUSB");
+    snprintf(fn_1_10_tbl_alt[9].name, 8, " UnUSB");
     fn_1_10_tbl_alt[9].action = turn_usb_off;
 
     bottom_line();
@@ -393,8 +397,8 @@ inline static void scan_code_processed() {
   lastCleanableScanCode = 0;
 }
 
-inline static fn_1_10_btn_pressed(uint8_t fn_idx) {
-    sprintf(line, "F%d pressed", fn_idx + 1);
+inline static void fn_1_10_btn_pressed(uint8_t fn_idx) {
+    snprintf(line, 80, "F%d pressed", fn_idx + 1);
     draw_cmd_line(0, CMD_Y_POS, line);
     (*actual_fn_1_10_tbl())[fn_idx].action(fn_idx);
 }
@@ -431,7 +435,7 @@ inline static void handle_up_pressed() {
 static inline void redraw_current_panel() {
     psp->selected_file_idx = 1;
     psp->start_file_offset = 0;
-    sprintf(line, "SD:%s", psp->path);
+    snprintf(line, 80, "SD:%s", psp->path);
     draw_panel(psp->left, PANEL_TOP_Y, psp->width, PANEL_LAST_Y + 1, line, 0);
     fill_panel(psp);
     draw_cmd_line(0, CMD_Y_POS, line);
@@ -470,15 +474,15 @@ static inline void enter_pressed() {
     while(f_readdir(&dir, &fileInfo) == FR_OK && fileInfo.fname[0] != '\0') {
         if (psp->start_file_offset <= psp->files_number && y <= LAST_FILE_LINE_ON_PANEL_Y) {
             if (psp->selected_file_idx == y) {
-                sprintf(line, "fn: %s afn: %s sz: %d attr: %03oo date: %04Xh time: %04Xh",
+                snprintf(line, 80, "fn: %s afn: %s sz: %d attr: %03oo date: %04Xh time: %04Xh",
                               fileInfo.fname, fileInfo.altname, fileInfo.fsize, fileInfo.fattrib, fileInfo.fdate, fileInfo.ftime);
                 draw_cmd_line(0, CMD_Y_POS, line);
                 if (fileInfo.fattrib & AM_DIR) {
                     f_closedir(&dir);
                     if (strlen(psp->path) > 1) {
-                        sprintf(line, "%s\\%s", psp->path, fileInfo.fname);
+                        snprintf(line, 80, "%s\\%s", psp->path, fileInfo.fname);
                     } else {
-                        sprintf(line, "\\%s", fileInfo.fname);
+                        snprintf(line, 80, "\\%s", fileInfo.fname);
                     }
                     if (f_opendir(&dir, line) != FR_OK) {
                         const line_t lns[1] = {
@@ -595,6 +599,7 @@ static inline void if_sound_control() { // core #0
 }
 
 static uint8_t repeat_cnt = 0;
+static void if_overclock();
 
 static inline void work_cycle() {
     while(1) {
@@ -703,6 +708,7 @@ static inline void work_cycle() {
 
 inline static void start_manager() {
     mark_to_exit_flag = false;
+    f_mkdir("\\iie");
     save_video_ram();
     enum graphics_mode_t ret = graphics_set_mode(TEXTMODE_DEFAULT);
  //   set_start_debug_line(30);
@@ -854,7 +860,7 @@ inline static int overclock() {
 
 uint32_t overcloking_khz = 378 * 1000;
 
-inline void if_overclock() {
+static void if_overclock() {
     int oc = overclock();
     if (oc > 0) overcloking_khz += 1000;
     if (oc < 0) overcloking_khz -= 1000;
@@ -865,7 +871,7 @@ inline void if_overclock() {
         uint vco, postdiv1, postdiv2;
         if (check_sys_clock_khz(overcloking_khz, &vco, &postdiv1, &postdiv2)) {
             set_sys_clock_pll(vco, postdiv1, postdiv2);
-            sprintf(line, "overcloking_khz: %u kHz", overcloking_khz);
+            snprintf(line, 80, "overcloking_khz: %u kHz", overcloking_khz);
             line_t lns[1] = {
                 { -1, line }
             };
@@ -873,7 +879,7 @@ inline void if_overclock() {
             draw_box(10, 7, 60, 10, "Info", &lines);
         }
         else {
-            sprintf(line, "System clock of %u kHz cannot be achieved", overcloking_khz);
+            snprintf(line, 80, "System clock of %u kHz cannot be achieved", overcloking_khz);
             line_t lns[1] = {
                 { -1, line }
             };
